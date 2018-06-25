@@ -149,8 +149,8 @@ def resetGame():
             maxScore = AIScore
             bestBrain = birdBrain
         #get the best bird
-     birdBrain.initialize()
      BirdsIteration = BirdsIteration+1
+     birdBrain.randomWeights()
      movementInfo = showWelcomeAnimation()
      crashInfo = mainGame(movementInfo)
      showGameOverScreen(crashInfo)
