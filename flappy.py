@@ -6,12 +6,12 @@ import pygame
 from pygame.locals import *
 import win32com.client as comclt
 
-FPS = 30
+FPS = 90
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 birdBrain = Brasin.Brain()
 bestBrain = Brasin.Brain()
-AIScore = 0
+AIScore = 1
 Population = 2
 currentPopulation=1
 BirdsIteration = 1
@@ -140,15 +140,19 @@ def main():
 
         resetGame()
 
-def resetGame():
-     global BirdsIteration,Population,currentPopulation,maxScore,bestBrain,birdBrain
+def resetGame():                       
+     global BirdsIteration,Population,currentPopulation,maxScore,bestBrain,birdBrain,AIScore
      if(BirdsIteration == Population):
+        #here it should mutate and crossover whatever
         currentPopulation=currentPopulation+1
         BirdsIteration=0
-        if maxScore > AIScore:
-            maxScore = AIScore
-            bestBrain = birdBrain
         #get the best bird
+     if maxScore < AIScore:
+         #save the best score
+         maxScore = AIScore
+         bestBrain = birdBrain
+         print(maxScore)
+     AIScore = 0
      BirdsIteration = BirdsIteration+1
      birdBrain.randomWeights()
      movementInfo = showWelcomeAnimation()
@@ -182,7 +186,7 @@ def showWelcomeAnimation():
                 }
 
 def mainGame(movementInfo):
-    global currentPopulation
+    global currentPopulation,AIScore
     score = playerIndex = loopIter = 0
     playerIndexGen = movementInfo['playerIndexGen']
     playerx, playery = int(SCREENWIDTH * 0.2), movementInfo['playery']
@@ -294,6 +298,8 @@ def mainGame(movementInfo):
         # print score so player overlaps the score
         showScore(score)
         showPopulation(currentPopulation)
+        showNumber(AIScore,100, SCREENHEIGHT * 0.9)
+        showNumber(maxScore,0, SCREENHEIGHT * 0.9)
         # Player rotation has a threshold
         visibleRot = playerRotThr
         if playerRot <= playerRotThr:
@@ -308,13 +314,12 @@ def mainGame(movementInfo):
         pipeY = upperPipes[0]["y"]
         pipeY = lowerPipes[0]["x"]
         #call the brain with location of bird and pipes 
-        global AIScore
         AIScore = AIScore+1
         response = birdBrain.Think(playerVelY,pipeX,pipeX,pipeX)
         if(response > 0.5):
             wsh= comclt.Dispatch("WScript.Shell")
             #wsh.AppActivate("Notepad") # select another application
-            wsh.SendKeys(" ") # send the space key
+            wsh.SendKeys(" ") # send the space key           
 
 
 
@@ -402,32 +407,21 @@ def getRandomPipe():
         {'x': pipeX, 'y': gapY + PIPEGAPSIZE}, # lower pipe
     ]
 
+def showNumber(text,xPos,yPos):
+    scoreDigits = [int(x) for x in list(str(text))]
+    totalWidth = 0 # total width of all numbers to be printed
 
+    for digit in scoreDigits:
+        totalWidth += IMAGES['numbers'][digit].get_width() 
+    Xoffset = xPos
+
+    for digit in scoreDigits:
+        SCREEN.blit(IMAGES['numbers'][digit], (Xoffset, yPos))
+        Xoffset += IMAGES['numbers'][digit].get_width()
 def showScore(score):
-    """displays score in center of screen"""
-    scoreDigits = [int(x) for x in list(str(score))]
-    totalWidth = 0 # total width of all numbers to be printed
-
-    for digit in scoreDigits:
-        totalWidth += IMAGES['numbers'][digit].get_width()
-
-    Xoffset = (SCREENWIDTH - totalWidth) / 2
-
-    for digit in scoreDigits:
-        SCREEN.blit(IMAGES['numbers'][digit], (Xoffset, SCREENHEIGHT * 0.1))
-        Xoffset += IMAGES['numbers'][digit].get_width()
+    showNumber(score,(SCREENWIDTH) / 1.5, SCREENHEIGHT * 0.1)
 def showPopulation(population):
-    scoreDigits = [int(x) for x in list(str(population))]
-    totalWidth = 0 # total width of all numbers to be printed
-
-    for digit in scoreDigits:
-        totalWidth += IMAGES['numbers'][digit].get_width()
-
-    Xoffset = 0
-
-    for digit in scoreDigits:
-        SCREEN.blit(IMAGES['numbers'][digit], (Xoffset, SCREENHEIGHT * 0.1))
-        Xoffset += IMAGES['numbers'][digit].get_width()
+    showNumber(population,0, SCREENHEIGHT * 0.1)
 
 def checkCrash(player, upperPipes, lowerPipes):
     """returns True if player collders with base or pipes."""
