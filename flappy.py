@@ -6,16 +6,18 @@ import pygame
 from pygame.locals import *
 import win32com.client as comclt
 
-FPS = 90
+FPS = 1000
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 birdBrain = Brasin.Brain()
 bestBrain = Brasin.Brain()
+secondBestBrain = Brasin.Brain()
 AIScore = 1
 Population = 2
 currentPopulation=1
 BirdsIteration = 1
 maxScore = 0
+playerFlapped = False # True when player flaps
 # amount by which base can maximum shift to left
 PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
 BASEY        = SCREENHEIGHT * 0.79
@@ -145,16 +147,23 @@ def resetGame():
      if(BirdsIteration == Population):
         #here it should mutate and crossover whatever
         currentPopulation=currentPopulation+1
+        print("mutate")
+        birdBrain.mutate
         BirdsIteration=0
         #get the best bird
+
      if maxScore < AIScore:
          #save the best score
          maxScore = AIScore
+         secondBestBrain = bestBrain
          bestBrain = birdBrain
+         print("crossover")
+         birdBrain.crossOver(bestBrain,secondBestBrain)
          print(maxScore)
      AIScore = 0
      BirdsIteration = BirdsIteration+1
-     birdBrain.randomWeights()
+     birdBrain.mutate()                                                                                          
+     #birdBrain.randomWeights()
      movementInfo = showWelcomeAnimation()
      crashInfo = mainGame(movementInfo)
      showGameOverScreen(crashInfo)
@@ -186,7 +195,7 @@ def showWelcomeAnimation():
                 }
 
 def mainGame(movementInfo):
-    global currentPopulation,AIScore
+    global currentPopulation,AIScore,playerFlapped
     score = playerIndex = loopIter = 0
     playerIndexGen = movementInfo['playerIndexGen']
     playerx, playery = int(SCREENWIDTH * 0.2), movementInfo['playery']
@@ -221,7 +230,7 @@ def mainGame(movementInfo):
     playerVelRot  =   3   # angular speed
     playerRotThr  =  20   # rotation threshold
     playerFlapAcc =  -9   # players speed on flapping
-    playerFlapped = False # True when player flaps
+
 
 
     while True:
@@ -231,8 +240,7 @@ def mainGame(movementInfo):
                 sys.exit()
             if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                 if playery > -2 * IMAGES['player'][0].get_height():
-                    playerVelY = playerFlapAcc
-                    playerFlapped = True
+                    jump()
                     #SOUNDS['wing'].play()
 
         # check for crash here
@@ -317,9 +325,7 @@ def mainGame(movementInfo):
         AIScore = AIScore+1
         response = birdBrain.Think(playerVelY,pipeX,pipeX,pipeX)
         if(response > 0.5):
-            wsh= comclt.Dispatch("WScript.Shell")
-            #wsh.AppActivate("Notepad") # select another application
-            wsh.SendKeys(" ") # send the space key           
+            jump()      
 
 
 
@@ -484,6 +490,9 @@ def getHitmask(image):
         for y in xrange(image.get_height()):
             mask[x].append(bool(image.get_at((x,y))[3]))
     return mask
-
+def jump():
+    global playerFlapped
+    playerVelY = -9
+    playerFlapped = True
 if __name__ == '__main__':
     main()
