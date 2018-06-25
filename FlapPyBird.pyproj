@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9c63f2c0-cf2e-4cf3-82ad-c4f724bc0262}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>flappy.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="assets\sprites\0.png" />
+    <Content Include="assets\sprites\1.png" />
+    <Content Include="assets\sprites\2.png" />
+    <Content Include="assets\sprites\3.png" />
+    <Content Include="assets\sprites\4.png" />
+    <Content Include="assets\sprites\5.png" />
+    <Content Include="assets\sprites\6.png" />
+    <Content Include="assets\sprites\7.png" />
+    <Content Include="assets\sprites\8.png" />
+    <Content Include="assets\sprites\9.png" />
+    <Content Include="assets\sprites\background-day.png" />
+    <Content Include="assets\sprites\background-night.png" />
+    <Content Include="assets\sprites\base.png" />
+    <Content Include="assets\sprites\bluebird-downflap.png" />
+    <Content Include="assets\sprites\bluebird-midflap.png" />
+    <Content Include="assets\sprites\bluebird-upflap.png" />
+    <Content Include="assets\sprites\gameover.png" />
+    <Content Include="assets\sprites\message.png" />
+    <Content Include="assets\sprites\pipe-green.png" />
+    <Content Include="assets\sprites\pipe-red.png" />
+    <Content Include="assets\sprites\redbird-downflap.png" />
+    <Content Include="assets\sprites\redbird-midflap.png" />
+    <Content Include="assets\sprites\redbird-upflap.png" />
+    <Content Include="assets\sprites\yellowbird-downflap.png" />
+    <Content Include="assets\sprites\yellowbird-midflap.png" />
+    <Content Include="assets\sprites\yellowbird-upflap.png" />
+    <Content Include="flappy.ico" />
+    <Content Include="screenshot1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Brasin.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="flappy.py" />
+    <Compile Include="setup.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="assets\" />
+    <Folder Include="assets\sprites" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
