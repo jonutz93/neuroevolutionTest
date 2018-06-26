@@ -1,9 +1,10 @@
 import tensorflow as tf
 import numpy
 import Logger
+
 class Brain(object):
     """description of class"""
-    def __init__(self):
+    def __init__(self,id):
         #parameters
         self.n_input = 4
         self.n_hidden = 10
@@ -11,6 +12,7 @@ class Brain(object):
         self.learning_rate = 0.1
         self.epochs = 0
         self.setup()
+        self.id = id
     def setup(self):
         #placeholders
         self.X = tf.placeholder(tf.float32)
@@ -62,7 +64,8 @@ class Brain(object):
         self.bias2 =bias2
         self.session.run([self.W1_assign, self.W2_assign],feed_dict={self.W1_placeholder:weights1, self.W2_placeholder:weights2})
         self.session.run([self.b1_assign, self.b2_assign],feed_dict={self.B1_placeholder:bias1, self.B2_placeholder:bias2})
-
+        Logger.Logger.Log("Bird id is "+str(self.id))
+        self.printWeights()
     def randomWeights(self):
         #internal weights. Are generated random for now. I hjave to generated them here otherwise are generated at each iteration we have new numbers.
         #last colomn represents the bias
@@ -71,11 +74,16 @@ class Brain(object):
         bias1 = numpy.random.uniform(low=-1.,high=1.,size=(self.n_hidden))
         bias2 = numpy.random.uniform(low=-1.,high=1.,size=(self.n_output))
         self.updateWeights(weight1,weight2,bias1,bias2)
+    def getWeights(self):
+        return {"w1":self.weight1,"w2":self.weight2,"bias1":self.bias1,"bias2":self.bias2}
+    def updateWeightsJson(self,newWeights):
+        self.updateWeights(newWeights["w1"],newWeights["w2"],newWeights["bias1"],newWeights["bias2"])
     def copyBrain(self):
+        #untested
         newBrain = Brain()
-        newBrain.Weights1 = self.Weights1
-        newBrain.Weights1 = self.Weights1
-        newbrain.Weights2 = self.Weights2
+        newBrain.setup()
+        newBrain.updateWeights(self.Weights1,self.Weights2,self.bias1,self.bias2)
+        return newBrain
     def printWeights(self):
        return 0
        Logger.Logger.Log("W1")
@@ -88,26 +96,18 @@ class Brain(object):
        Logger.Logger.Log(numpy.array2string(self.b2.eval(self.session)))
 
     def Think(self, yBirdPosition, pipesXPosition, upperPipeY, lowerPipeY):
-        self.printWeights()
         x_data = numpy.array([
         [yBirdPosition,pipesXPosition,upperPipeY,lowerPipeY]])
         y_data = numpy.array([
         [1]])
-        print(x_data)
-        Logger.Logger.Log(numpy.array2string(x_data))
+        #Logger.Logger.Log(numpy.array2string(x_data))
         #self.session.run(self.init)
         #answer = tf.equal(tf.floor(self.hy + 0.5), self.Y)
         legitAnswer=self.session.run([self.hy], feed_dict={self.X: x_data, self.Y: y_data})
         #because reasons?
         answer = legitAnswer[0][0][0]
-        Logger.Logger.Log("Answer")
-        Logger.Logger.Log(str(answer))
-        #accuracy = tf.reduce_mean(tf.cast(answer, "float"))
-        #print(accuracy)
-        #accuracyPercent = accuracy.eval({self.X: x_data, self.Y: y_data}) * 100
-        #print("Accuracy: ",accuracyPercent, "%")
-        # print("W1 EVAL ")
-        # print(self.W1.eval(),set_iterator=)
+        #Logger.Logger.Log("Answer")
+        #Logger.Logger.Log(str(answer))
         return answer
     def mutate(self):
         w1_ = self.mutate_w_with_percent_change(self.weight1)
@@ -115,7 +115,6 @@ class Brain(object):
         b1_ = self.mutate_b_with_percent_change(self.bias1)
         b2_ = self.mutate_b_with_percent_change(self.bias2)
         self.updateWeights(w1_,w2_,b1_,b2_)
-
     def mutate_w_with_percent_change(self,p, add_sub_rand=True):
         #considering its 2d array
         new_p = []

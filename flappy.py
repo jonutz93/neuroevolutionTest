@@ -6,16 +6,19 @@ import pygame
 from pygame.locals import *
 import win32com.client as comclt
 import Bird
-
+import time
+import datetime
+import Logger
+import copy
 #Constants
-FPS = 15
+FPS = 180
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 
 AIScore = 1
 
 PopulationSize = 10
-howManyWePick = 4 # how many we pick based on their fitness
+howManyWePick = 1 # how many we pick based on their fitness
 currentPopulation=1
 BirdsIteration = 1
 maxScore = 0
@@ -154,25 +157,28 @@ def crossOver(birdA,birdB):
 	#swap 'bias' information between both parents from the hidden layer:
 	# 1. left side to the crossover point is copied from one parent
 	# 2. right side after the crossover point is copied from the second parent
+    networkA = birdA.brain.getWeights()
+    networkB = birdB.brain.getWeights()
     for i in range(limit,numberOfBiases):
-        biasFrombirdA = birdA.brain.bias1[i]
-        birdB.brain.bias1[i] = birdA.brain.bias1[i]
-        biasFrombirdA = biasFrombirdA;
+        biasFrombirdA = networkA["bias1"][i]
+        networkA["bias1"][i] = networkB["bias1"][i]
+        networkB["bias1"][i] = biasFrombirdA;
 
     whichBirdShouldIchoose = random.randint(0,1)
     if whichBirdShouldIchoose == 1:
-        return birdA
+        return networkA
     else:
-        return birdB
+        return networkB
 def resetGame():                       
     global BirdsIteration,PopulationSize,currentPopulation,maxScore,bestBrain,birdBrain,AIScore,howManyWePick,mutateRate,birds
     #pick the best birds
     currentPopulation=currentPopulation+1
-    if(mutateRate == 1 and savedBirds[PopulationSize-1].fitness<200):
+    if(mutateRate == 1 and savedBirds[PopulationSize-1].fitness<180):
         #this is bad. None reached the first pipe. Instead of mutating and crossover we will recreate the population
         #We set again random weights
         for bird in savedBirds:
             print("reset")
+            Logger.Logger.Log("reset")
             bird.resetBird();
         birds = savedBirds.copy()
        
@@ -187,34 +193,40 @@ def resetGame():
             #This means that savedBirds[PopulationSize-1] has the best fitness
             birds.insert(len(birds),newlist[i])
             Winners.insert(len(birds),newlist[i])
-        for i in range(howManyWePick,PopulationSize):
+        for i in range(howManyWePick,howManyWePick+3):
             #get 2 random parrents of the top 4
             parentA = random.choice(Winners)
             parentB = random.choice(Winners)
-            newBird = crossOver(parentA,parentB)
-            birds.insert(len(birds),newBird)
+            newWeights = Winners[0].brain.getWeights() #crossOver(parentA,parentB)
+            newlist[i].brain.updateWeightsJson(newWeights)
+            birds.insert(len(birds),newlist[i])
         for i in range(howManyWePick+3,PopulationSize):
             parentA = Winners[0]
-            parentB = Winners[1]
-            newBird = crossOver(parentA,parentB)
-            birds.insert(len(birds),newBird)
-        for bird in birds:
-            #bird.brain.mutate()
-            bird.reesetFitness()
+            #parentB = Winners[1]
+            newWeights =parentA.brain.getWeights() #crossOver(parentA,parentB)
+            newlist[i].brain.updateWeightsJson(newWeights)
+            birds.insert(len(birds),newlist[i])
         #save the best score of all time
         if maxScore < Winners[0].fitness:
             #save the best score
             maxScore = Winners[0].fitness
             print(maxScore)
+        for i in range(0,PopulationSize):
+            if i!=0:
+                newlist[i].brain.mutate()
+            newlist[i].reesetFitness()
         Winners.clear()
 
     #for i in range (PopulationSize,PopulationSize-howManyWePick):
     BirdsIteration=0
-  
+    print("id's")
+    for bird in birds:
+        print(bird.id)
     AIScore = 0
     BirdsIteration += 1
     savedBirds.clear()
-
+    print("restart")
+    Logger.Logger.Log("restart")
     mainGame()
 
 def mainGame():
@@ -260,7 +272,7 @@ def mainGame():
     playerFlapAcc =  -9   # players speed on flapping
 
 
-
+    oldtime =datetime.datetime.now()
     while True:
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
@@ -282,6 +294,8 @@ def mainGame():
                 #bird.fitness =bird.fitness + (bird.PosX - upperPipes[0]["x"])
                 birds.remove(bird)
                 savedBirds.insert(len(savedBirds),bird)
+                print("death")
+                Logger.Logger.Log("death")
                 if len(birds) == 0:
                     resetGame()
 
@@ -364,13 +378,16 @@ def mainGame():
         lowerPipeY = lowerPipes[0]["x"]
         #call the brain with location of bird and pipes 
         AIScore = AIScore+1
-        for bird in birds:
-            bird.fitness+=1
-        if AIScore%2==0:
+        start = time.time()
+        #we should make this check only once per second
+        if (datetime.datetime.now() - oldtime).total_seconds() >= 0:
+            oldtime = datetime.datetime.now()
+            for bird in birds:
+                bird.fitness+=1
+                Logger.Logger.Log("bird id " + str(bird.brain.id) + "fitness " + str(bird.fitness))
             for bird in birds:
                 response = bird.brain.Think(bird.PosY,pipeX,pipeY,lowerPipeY)
                 if(response > 0.5):
-                    print("jump")
                     jump(bird)      
 
 
