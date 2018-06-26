@@ -49,10 +49,16 @@
     <Content Include="screenshot1.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bird.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Brasin.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="flappy.py" />
+    <Compile Include="Logger.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="setup.py" />
   </ItemGroup>
   <ItemGroup>

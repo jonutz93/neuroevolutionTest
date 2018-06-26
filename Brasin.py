@@ -1,11 +1,12 @@
 import tensorflow as tf
 import numpy
+import Logger
 class Brain(object):
     """description of class"""
     def __init__(self):
         #parameters
         self.n_input = 4
-        self.n_hidden = 4
+        self.n_hidden = 10
         self.n_output = 1
         self.learning_rate = 0.1
         self.epochs = 0
@@ -75,20 +76,32 @@ class Brain(object):
         newBrain.Weights1 = self.Weights1
         newBrain.Weights1 = self.Weights1
         newbrain.Weights2 = self.Weights2
+    def printWeights(self):
+       return 0
+       Logger.Logger.Log("W1")
+       Logger.Logger.Log(numpy.array2string(self.W1.eval(self.session)))
+       Logger.Logger.Log("W2")
+       Logger.Logger.Log(numpy.array2string(self.W2.eval(self.session)))
+       Logger.Logger.Log("bias1")
+       Logger.Logger.Log(numpy.array2string(self.b1.eval(self.session)))
+       Logger.Logger.Log("bias2")
+       Logger.Logger.Log(numpy.array2string(self.b2.eval(self.session)))
 
     def Think(self, yBirdPosition, pipesXPosition, upperPipeY, lowerPipeY):
+        self.printWeights()
         x_data = numpy.array([
         [yBirdPosition,pipesXPosition,upperPipeY,lowerPipeY]])
         y_data = numpy.array([
         [1]])
         print(x_data)
-            
+        Logger.Logger.Log(numpy.array2string(x_data))
         #self.session.run(self.init)
         #answer = tf.equal(tf.floor(self.hy + 0.5), self.Y)
         legitAnswer=self.session.run([self.hy], feed_dict={self.X: x_data, self.Y: y_data})
         #because reasons?
         answer = legitAnswer[0][0][0]
-        print(answer)
+        Logger.Logger.Log("Answer")
+        Logger.Logger.Log(str(answer))
         #accuracy = tf.reduce_mean(tf.cast(answer, "float"))
         #print(accuracy)
         #accuracyPercent = accuracy.eval({self.X: x_data, self.Y: y_data}) * 100
