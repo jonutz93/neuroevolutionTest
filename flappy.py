@@ -11,14 +11,14 @@ import datetime
 import Logger
 import copy
 #Constants
-FPS = 180
+FPS = 30
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 
 AIScore = 1
 
-PopulationSize = 10
-howManyWePick = 1 # how many we pick based on their fitness
+PopulationSize = 20
+howManyWePick = 4 # how many we pick based on their fitness
 currentPopulation=1
 BirdsIteration = 1
 maxScore = 0
@@ -173,7 +173,7 @@ def resetGame():
     global BirdsIteration,PopulationSize,currentPopulation,maxScore,bestBrain,birdBrain,AIScore,howManyWePick,mutateRate,birds
     #pick the best birds
     currentPopulation=currentPopulation+1
-    if(mutateRate == 1 and savedBirds[PopulationSize-1].fitness<180):
+    if(mutateRate == 1 and savedBirds[PopulationSize-1].fitness<110):
         #this is bad. None reached the first pipe. Instead of mutating and crossover we will recreate the population
         #We set again random weights
         for bird in savedBirds:
@@ -184,7 +184,7 @@ def resetGame():
        
     else:
         #the real mutate rate
-        mutateRate = 0.2
+        mutateRate = 0.1
         # the top 4 birds 
         Winners = []
         newlist = sorted(savedBirds, key=lambda x: x.fitness, reverse=True)
@@ -193,17 +193,22 @@ def resetGame():
             #This means that savedBirds[PopulationSize-1] has the best fitness
             birds.insert(len(birds),newlist[i])
             Winners.insert(len(birds),newlist[i])
-        for i in range(howManyWePick,howManyWePick+3):
+        for i in range(howManyWePick,howManyWePick+1):
+            parentA = Winners[0]
+            parentB = Winners[1]
+            newWeights = crossOver(parentA,parentB)
+            newlist[i].brain.updateWeightsJson(newWeights)
+            birds.insert(len(birds),newlist[i])
+        for i in range(howManyWePick+1,howManyWePick+4):
             #get 2 random parrents of the top 4
             parentA = random.choice(Winners)
             parentB = random.choice(Winners)
-            newWeights = Winners[0].brain.getWeights() #crossOver(parentA,parentB)
+            newWeights = crossOver(parentA,parentB)
             newlist[i].brain.updateWeightsJson(newWeights)
             birds.insert(len(birds),newlist[i])
-        for i in range(howManyWePick+3,PopulationSize):
-            parentA = Winners[0]
-            #parentB = Winners[1]
-            newWeights =parentA.brain.getWeights() #crossOver(parentA,parentB)
+        for i in range(howManyWePick+4,PopulationSize):
+            randomWinner = random.choice(Winners)
+            newWeights = randomWinner.brain.getWeights()
             newlist[i].brain.updateWeightsJson(newWeights)
             birds.insert(len(birds),newlist[i])
         #save the best score of all time
@@ -212,16 +217,13 @@ def resetGame():
             maxScore = Winners[0].fitness
             print(maxScore)
         for i in range(0,PopulationSize):
-            if i!=0:
-                newlist[i].brain.mutate()
+            if i>=howManyWePick:
+                newlist[i].brain.mutate(mutateRate)
             newlist[i].reesetFitness()
         Winners.clear()
 
     #for i in range (PopulationSize,PopulationSize-howManyWePick):
     BirdsIteration=0
-    print("id's")
-    for bird in birds:
-        print(bird.id)
     AIScore = 0
     BirdsIteration += 1
     savedBirds.clear()
@@ -373,9 +375,10 @@ def mainGame():
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
-        pipeX = upperPipes[0]["x"]
-        pipeY = upperPipes[0]["y"]
-        lowerPipeY = lowerPipes[0]["x"]
+
+        pipesX = upperPipes[0]["x"]
+        upperPipeY = upperPipes[0]["y"] + IMAGES['pipe'][0].get_height()
+        lowerPipeY =  upperPipeY + PIPEGAPSIZE
         #call the brain with location of bird and pipes 
         AIScore = AIScore+1
         start = time.time()
@@ -386,7 +389,10 @@ def mainGame():
                 bird.fitness+=1
                 Logger.Logger.Log("bird id " + str(bird.brain.id) + "fitness " + str(bird.fitness))
             for bird in birds:
-                response = bird.brain.Think(bird.PosY,pipeX,pipeY,lowerPipeY)
+                if(bird.PosX>pipesX+IMAGES['pipe'][0].get_width()):
+                     upperPipeY = upperPipes[1]["y"] + IMAGES['pipe'][0].get_height()
+                     lowerPipeY =  upperPipeY + PIPEGAPSIZE
+                response = bird.brain.Think(bird.PosY,pipesX,upperPipeY,lowerPipeY)
                 if(response > 0.5):
                     jump(bird)      
 
@@ -466,7 +472,7 @@ def playerShm(playerShm):
 def getRandomPipe():
     """returns a randomly generated pipe"""
     # y of gap between upper and lower pipe
-    gapY = random.randrange(0, int(BASEY * 0.6 - PIPEGAPSIZE))
+    gapY = 110 #random.randrange(0, int(BASEY * 0.6 - PIPEGAPSIZE))
     gapY += int(BASEY * 0.2)
     pipeHeight = IMAGES['pipe'][0].get_height()
     pipeX = SCREENWIDTH + 10

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy
 import Logger
-
+import random
 class Brain(object):
     """description of class"""
     def __init__(self,id):
@@ -109,12 +109,6 @@ class Brain(object):
         #Logger.Logger.Log("Answer")
         #Logger.Logger.Log(str(answer))
         return answer
-    def mutate(self):
-        w1_ = self.mutate_w_with_percent_change(self.weight1)
-        w2_ = self.mutate_w_with_percent_change(self.weight2)
-        b1_ = self.mutate_b_with_percent_change(self.bias1)
-        b2_ = self.mutate_b_with_percent_change(self.bias2)
-        self.updateWeights(w1_,w2_,b1_,b2_)
     def mutate_w_with_percent_change(self,p, add_sub_rand=True):
         #considering its 2d array
         new_p = []
@@ -150,6 +144,28 @@ class Brain(object):
                         temp = temp + numpy.random.random_sample()
             new_p.append(temp)
         return new_p
+    def mutate(self,prob):
+        for ix,iy in numpy.ndindex(self.weight1.shape):
+            self.weight1[ix,iy] = self.mutateValue(self.weight1[ix,iy],prob)
+        for ix,iy in numpy.ndindex(self.weight2.shape):
+            self.weight2[ix,iy] = self.mutateValue(self.weight2[ix,iy],prob)
+        for ix in numpy.ndindex(self.bias1.shape):
+           self.bias1[ix] =  self.mutateValue(self.bias1[ix],prob)
+        for ix in numpy.ndindex(self.bias2.shape):
+           self.bias2[ix] = self.mutateValue(self.bias2[ix],prob)
+        self.updateWeights(self.weight1,self.weight2,self.bias1,self.bias2)
+    def mutateValue(self,value,prob):
+        if (random.uniform(0, 1) < prob):
+            offset = random.uniform(-1, 1) * 0.5;
+            newValue = value + offset
+            return newValue
+        return value
+    def mutateValue2(self,value,prob):
+        #another try
+        if (random.uniform(0, 1) < prob):
+            mutateFactor = 1 + ((random.uniform(0, 1) - 0.5) * 3 + (random.uniform(0, 1)- 0.5))
+            value *= mutateFactor;
+        return value
     def crossOver(self,brain):
         w1_ = self.cross_over(self.weight1,self.weight2,self.bias1,self.bias2,brain.weight1,brain.weight2,brain.bias1,brain.bias2)
         w2_ = self.mutate_w_with_percent_change(self.weight2)
