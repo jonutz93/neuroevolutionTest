@@ -7,7 +7,7 @@ class Brain(object):
     def __init__(self,id):
         #parameters
         self.n_input = 4
-        self.n_hidden = 10
+        self.n_hidden = 5
         self.n_output = 1
         self.learning_rate = 0.1
         self.epochs = 0
