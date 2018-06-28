@@ -3,6 +3,8 @@ FlappyBirdClone
 
 A Flappy Bird Clone made using [python-pygame][1]
 
+It uses neuroevolution to train the ai
+
 How-to
 ------
 
@@ -22,3 +24,6 @@ How-to
 
 
 [1]: http://www.pygame.org
+
+Credits:
+ The game is based on https://github.com/sourabhv/FlappyBirdClone.git
